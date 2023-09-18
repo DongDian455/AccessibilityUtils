@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeAllMask|typeWindowStateChanged|typeWindowContentChanged"
+    android:accessibilityFeedbackType="feedbackSpoken|feedbackGeneric"
+    android:accessibilityFlags="flagReportViewIds"
+    android:canRetrieveWindowContent="true"
+    android:canPerformGestures="true"
+    android:description="@string/acc_auto_click"
+    android:notificationTimeout="100" />
+
+    <!--    feedbackGeneric  AccessibilityServiceInfo.FEEDBACK_GENERIC ： 通用的反馈-->
+
+    <!--    feedbackAudible AccessibilityServiceInfo.FEEDBACK_AUDIBLE ： 声音反馈-->
+
+    <!--    feedbackSpoken AccessibilityServiceInfo.FEEDBACK_SPOKEN  ：  语音反馈-->
+<!--<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--android:accessibilityEventTypes="typeAllMask"-->
+<!--android:accessibilityFeedbackType="feedbackAllMask"-->
+<!--android:canPerformGestures="true"-->
+<!--android:canRetrieveWindowContent="true"-->
+<!--android:description="@string/accessibility_desc" />-->
