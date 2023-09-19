@@ -9,9 +9,12 @@ import com.returntolife.accessibilityutils.databinding.ViewMenuBinding
  *@date: 9/18/23
  *des:
  */
-class MenuManager(private val context: Context) {
+class MenuManager(
+    private val context: Context,
+    private val clickListener: ((Float, Float, ClickInfo) -> Unit)
+) {
 
-    private var menuBinding: ViewMenuBinding? = null
+    private var menuBinding: ViewMenuBinding
 
     private val clickInfoList = ArrayList<FloatingClickView>()
 
@@ -19,25 +22,27 @@ class MenuManager(private val context: Context) {
     @Volatile
     private var isPlaying = false
 
-    var clickListener: ((Float, Float, ClickInfo) -> Unit)? = null
-
+    init {
+        menuBinding = ViewMenuBinding.inflate(LayoutInflater.from(context))
+    }
 
     fun showMenuManager() {
         menuBinding = ViewMenuBinding.inflate(LayoutInflater.from(context))
-        menuBinding!!.root.show()
+        menuBinding.root.show()
 
         initListener()
     }
 
 
     private fun initListener() {
-        menuBinding?.let {
+        menuBinding.let {
             it.ivAdd.setOnClickListener {
-
                 val clickInfo =
                     ClickInfo(clickInfoList.size + 1, 1000)
 
-                FloatingClickView(context, clickInfo).apply {
+                FloatingClickView(context, clickInfo, clickListener) {
+                    stopAll()
+                }.apply {
                     clickInfoList.add(this)
                     this.show()
                 }
@@ -52,35 +57,47 @@ class MenuManager(private val context: Context) {
             }
 
             it.ivClose.setOnClickListener {
-                remove()
+                removeAll()
             }
 
             it.ivPlay.setOnClickListener {
                 if (isPlaying) {
-                    isPlaying = false
-                    menuBinding?.ivPlay?.setImageResource(R.mipmap.ic_play)
-                    clickInfoList.forEach { view ->
-                        view.stopAutoClick()
-                    }
+                    stopAll()
                 } else {
-                    isPlaying = true
-                    menuBinding?.ivPlay?.setImageResource(R.mipmap.ic_pause)
-
-                    clickInfoList.forEach { view ->
-                        view.startAutoClick()
-                    }
+                    startAll()
                 }
             }
         }
     }
 
 
-    fun remove() {
-        clickInfoList.forEach {
-            it.stopAutoClick()
+    private fun stopAll() {
+        if (isPlaying) {
+            isPlaying = false
+            menuBinding.ivPlay.setImageResource(R.mipmap.ic_play)
+            clickInfoList.forEach { view ->
+                view.stopAutoClick()
+            }
         }
-        isPlaying = false
-        menuBinding?.root?.remove()
+    }
+
+    private fun startAll() {
+        isPlaying = true
+        menuBinding.ivPlay.setImageResource(R.mipmap.ic_pause)
+
+        clickInfoList.forEach { view ->
+            view.startAutoClick()
+        }
+    }
+
+
+    fun removeAll() {
+        stopAll()
+        clickInfoList.forEach { view ->
+            view.remove()
+        }
+        clickInfoList.clear()
+        menuBinding.root.remove()
 
     }
 

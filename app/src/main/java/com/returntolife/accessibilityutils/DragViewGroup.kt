@@ -10,6 +10,8 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.FrameLayout
+import com.blankj.utilcode.util.LogUtils
+import kotlin.math.abs
 
 /**
  *@author: hejiajun02@lizhi.fm
@@ -28,6 +30,10 @@ open class DragViewGroup @JvmOverloads constructor(
     private var mTouchStartX = -1f
     private var mTouchStartY = -1f
 
+    private var downX = -1f
+    private var downY = -1f
+    protected var isDragging = false
+
     init {
         mWindowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     }
@@ -39,6 +45,10 @@ open class DragViewGroup @JvmOverloads constructor(
                 MotionEvent.ACTION_DOWN -> {
                     mTouchStartX = event.rawX
                     mTouchStartY = event.rawY
+
+                    downX = event.rawX
+                    downY = event.rawY
+                    isDragging = false
                 }
 
                 MotionEvent.ACTION_MOVE -> {
@@ -46,12 +56,24 @@ open class DragViewGroup @JvmOverloads constructor(
                         it.x += (event.rawX - mTouchStartX).toInt()
                         it.y += (event.rawY - mTouchStartY).toInt()
 
-                        mWindowManager.tryUpdateView(this,it)
+                        mWindowManager.tryUpdateView(this, it)
+
+                        if (abs(event.rawX - downX) > 50 || abs(event.rawY - downY) > 50) {
+                            isDragging = true
+                        }
                     }
                     mTouchStartX = event.rawX
                     mTouchStartY = event.rawY
 
-                    return  false
+                    return false
+                }
+
+                MotionEvent.ACTION_UP -> {
+
+                }
+
+                else -> {
+
                 }
             }
         }
@@ -59,7 +81,7 @@ open class DragViewGroup @JvmOverloads constructor(
         return super.onTouchEvent(event)
     }
 
-    fun getViewPos():IntArray{
+    fun getViewPos(): IntArray {
         val location = IntArray(2)
         getLocationOnScreen(location)
         return location

@@ -3,14 +3,10 @@ package com.returntolife.accessibilityutils
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.PixelFormat
 import android.os.Build
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.WindowManager
-import androidx.appcompat.app.AlertDialog
 import com.blankj.utilcode.util.LogUtils
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.returntolife.accessibilityutils.databinding.DialogMotifyClickinfoBinding
 import com.returntolife.accessibilityutils.databinding.ViewFloatingClickBinding
 import kotlinx.coroutines.CoroutineScope
@@ -26,13 +22,18 @@ import kotlinx.coroutines.launch
  *@date: 9/18/23
  *des:
  */
-class FloatingClickView(private val mContext: Context, val clickInfo: ClickInfo) :
-    DragViewGroup(mContext) {
+@SuppressLint("ViewConstructor")
+class FloatingClickView(
+    context: Context,
+    private val clickInfo: ClickInfo,
+    private val clickListener: (Float, Float, ClickInfo) -> Unit,
+    private val whenShowConfigDialog: () -> Unit,
+) :
+    DragViewGroup(context) {
 
 
     private var scope: CoroutineScope? = null
 
-    var clickListener: ((Float, Float, ClickInfo) -> Unit)? = null
 
     init {
         val binding = ViewFloatingClickBinding.inflate(LayoutInflater.from(context), this)
@@ -45,16 +46,28 @@ class FloatingClickView(private val mContext: Context, val clickInfo: ClickInfo)
     private var timeTemp = 0L
     private var clickCount = 1
 
+    private var firstDelay = true
+
     private suspend fun checkClick() {
         //每隔16.6毫秒检测一次,即最多1秒点击60次
-        delay(17)
+        if (clickInfo.clickCount != ClickInfo.REVERT && clickCount > clickInfo.clickCount) {
+            LogUtils.d("超过点击次数 clickInfo=${clickInfo}")
+            return
+        }
+
+        if (firstDelay) {
+            firstDelay = false
+            delay(clickInfo.firstDelayTime)
+        }
 
         if (System.currentTimeMillis() - timeTemp > clickInfo.interval) {
             val intArray = getViewPos()
-            clickListener?.invoke(intArray[0].toFloat(), intArray[1].toFloat(), clickInfo)
-            LogUtils.d("点击 id=${clickInfo.id} count =${clickCount++}")
+            clickListener.invoke(intArray[0].toFloat(), intArray[1].toFloat(), clickInfo)
+            LogUtils.d("触发点击 clickInfo=${clickInfo} count =${clickCount++}")
             timeTemp = System.currentTimeMillis()
         }
+
+        delay(17)
 
         checkClick()
     }
@@ -69,30 +82,36 @@ class FloatingClickView(private val mContext: Context, val clickInfo: ClickInfo)
 
     fun stopAutoClick() {
         scope?.cancel()
+        timeTemp = 0
     }
 
 
     override fun remove() {
         stopAutoClick()
         super.remove()
-
     }
 
     private fun initListener() {
         setOnLongClickListener {
-            showDialog()
-            true
+            if (isDragging.not()) {
+                showDialog()
+                true
+            } else {
+                false
+            }
         }
     }
 
 
     private fun showDialog() {
+        whenShowConfigDialog.invoke()
+
         val dialogBinding =
-            DialogMotifyClickinfoBinding.inflate(LayoutInflater.from(mContext.applicationContext))
+            DialogMotifyClickinfoBinding.inflate(LayoutInflater.from(context.applicationContext))
         dialogBinding.etInterval.setText(clickInfo.interval.toString())
         dialogBinding.etCount.setText(clickInfo.clickCount.toString())
 
-        val dialog = android.app.AlertDialog.Builder(mContext.applicationContext)
+        val dialog = android.app.AlertDialog.Builder(context.applicationContext)
             .setView(dialogBinding.root)
             .create()
 
@@ -108,7 +127,7 @@ class FloatingClickView(private val mContext: Context, val clickInfo: ClickInfo)
         dialogBinding.btnOk.setOnClickListener {
             clickInfo.interval = dialogBinding.etInterval.text.toString().toInt()
             clickInfo.clickCount = dialogBinding.etCount.text.toString().toInt()
-
+            LogUtils.d("修改点击配置  clickInfo=${clickInfo}")
             dialog.dismiss()
         }
 

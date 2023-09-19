@@ -1,5 +1,6 @@
 package com.returntolife.accessibilityutils
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
@@ -27,6 +28,7 @@ class MainActivity : AppCompatActivity() {
 
     private var mLayout: FrameLayout? = null
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
@@ -52,6 +54,14 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnStart.setOnClickListener {
             showFloatingWindow(1000)
+        }
+
+        binding.btnTest1.setOnClickListener {
+            binding.btnTest1.text = (binding.btnTest1.text.toString().toInt()+1).toString()
+        }
+
+        binding.btnTest2.setOnClickListener {
+            binding.btnTest2.text = (binding.btnTest2.text.toString().toInt()+1).toString()
         }
     }
 

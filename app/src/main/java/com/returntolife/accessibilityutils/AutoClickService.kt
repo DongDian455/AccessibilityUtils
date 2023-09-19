@@ -1,16 +1,19 @@
 package com.returntolife.accessibilityutils
 
+import android.R.attr
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Path
 import android.os.Build
 import android.view.accessibility.AccessibilityEvent
 import androidx.annotation.RequiresApi
 import com.blankj.utilcode.util.LogUtils
-import java.nio.file.Path
+
+
 
 /**
  *@author: hejiajun02@lizhi.fm
@@ -32,26 +35,23 @@ class AutoClickService : AccessibilityService() {
     }
 
     private val broadcastReceiver = BroadcastHandler(this)
-    //点击间隔
-    private var mInterval = -1L
+
 
     //点击坐标xy
     private var mPointX = -1f
     private var mPointY = -1f
 
 
-
-    private val menuManager = MenuManager(this)
+    private lateinit var menuManager:MenuManager
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         LogUtils.d("onServiceConnected")
 
         broadcastReceiver.register()
-
-        menuManager.clickListener = {x,y,clickInfo->
+        menuManager = MenuManager(this) { x, y, clickInfo ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                autoClickView(x,y,clickInfo)
+                autoClickView(x, y, clickInfo)
             }
         }
     }
@@ -74,23 +74,23 @@ class AutoClickService : AccessibilityService() {
 
 
     @RequiresApi(Build.VERSION_CODES.N)
-    private fun autoClickView(x: Float, y: Float,clickInfo: ClickInfo) {
-        val path = android.graphics.Path()
-        path.moveTo(x, y)
+    private fun autoClickView(x: Float, y: Float, clickInfo: ClickInfo) {
+        val path = Path()
+        path.moveTo(x-1, y-1)
         val gestureDescription = GestureDescription.Builder()
-            .addStroke(GestureDescription.StrokeDescription(path, 1L, 20L))
+            .addStroke(GestureDescription.StrokeDescription(path, 0L, 300L))
             .build()
         dispatchGesture(
             gestureDescription,
             object : GestureResultCallback() {
                 override fun onCompleted(gestureDescription: GestureDescription?) {
                     super.onCompleted(gestureDescription)
-                    LogUtils.d("自动点击完成 clickInfo=${clickInfo.id}")
+                    LogUtils.d("自动点击完成 x=${x} y=${y} clickInfo=${clickInfo.id}")
                 }
 
                 override fun onCancelled(gestureDescription: GestureDescription?) {
                     super.onCancelled(gestureDescription)
-                    LogUtils.d("自动点击取消 clickInfo=${clickInfo.id}")
+                    LogUtils.d("自动点击取消 x=${x} y=${y} clickInfo=${clickInfo.id}")
                 }
             },
             null
@@ -131,7 +131,7 @@ class AutoClickService : AccessibilityService() {
 ////                                mainScope?.cancel()
 //                                mInterval = getLongExtra(BroadcastConstants.KEY_INTERVAL, 5000)
 //                                mFloatingView.show()
-                                menuManager.remove()
+                                menuManager.removeAll()
                                 menuManager.showMenuManager()
                             }
 

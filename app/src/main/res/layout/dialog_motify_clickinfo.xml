@@ -5,6 +5,15 @@
     android:padding="16dp"
     android:layout_height="wrap_content">
 
+    <TextView
+        android:layout_gravity="center"
+        android:padding="16dp"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:text="单位都是毫秒!"
+        android:textColor="@color/Primary100"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
     <LinearLayout
         android:orientation="horizontal"
@@ -23,13 +32,50 @@
             android:layout_height="wrap_content"/>
     </LinearLayout>
 
+
+
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <TextView
-            android:text="点击次数"
+            android:text="首次延迟"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <EditText
+            android:inputType="number"
+            android:id="@+id/et_delay_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:text="按下持续事件"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <EditText
+            android:inputType="number"
+            android:id="@+id/et_press_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:text="点击次数(0为无限)"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
