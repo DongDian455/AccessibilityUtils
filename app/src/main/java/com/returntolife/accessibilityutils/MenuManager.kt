@@ -3,21 +3,15 @@ package com.returntolife.accessibilityutils
 import android.content.Context
 import android.view.LayoutInflater
 import com.returntolife.accessibilityutils.databinding.ViewMenuBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 /**
  *@author: hejiajun02@lizhi.fm
  *@date: 9/18/23
  *des:
  */
-class MenuManager(private val context:Context) {
+class MenuManager(private val context: Context) {
 
-    private var menuBinding:ViewMenuBinding?=null
+    private var menuBinding: ViewMenuBinding? = null
 
     private val clickInfoList = ArrayList<FloatingClickView>()
 
@@ -25,10 +19,10 @@ class MenuManager(private val context:Context) {
     @Volatile
     private var isPlaying = false
 
-     var clickListener:((Float,Float,ClickInfo)->Unit)?=null
+    var clickListener: ((Float, Float, ClickInfo) -> Unit)? = null
 
 
-    fun showMenuManager(){
+    fun showMenuManager() {
         menuBinding = ViewMenuBinding.inflate(LayoutInflater.from(context))
         menuBinding!!.root.show()
 
@@ -36,21 +30,25 @@ class MenuManager(private val context:Context) {
     }
 
 
-
     private fun initListener() {
         menuBinding?.let {
             it.ivAdd.setOnClickListener {
 
-                val clickInfo = ClickInfo(clickInfoList.size+1,5000*(clickInfoList.size+1),1)
+                val clickInfo =
+                    ClickInfo(clickInfoList.size + 1, 1000)
 
-                FloatingClickView(context,clickInfo).apply {
+                FloatingClickView(context, clickInfo).apply {
                     clickInfoList.add(this)
                     this.show()
                 }
             }
 
             it.ivRemove.setOnClickListener {
-
+                if (clickInfoList.size > 0) {
+                    val view = clickInfoList[clickInfoList.size - 1];
+                    view.remove()
+                    clickInfoList.remove(view)
+                }
             }
 
             it.ivClose.setOnClickListener {
@@ -58,18 +56,18 @@ class MenuManager(private val context:Context) {
             }
 
             it.ivPlay.setOnClickListener {
-                if(isPlaying){
+                if (isPlaying) {
                     isPlaying = false
                     menuBinding?.ivPlay?.setImageResource(R.mipmap.ic_play)
-                    clickInfoList.forEach {
-                        it.stopAutoClick()
+                    clickInfoList.forEach { view ->
+                        view.stopAutoClick()
                     }
-                }else{
+                } else {
                     isPlaying = true
                     menuBinding?.ivPlay?.setImageResource(R.mipmap.ic_pause)
 
-                    clickInfoList.forEach {
-                      it.startAutoClick()
+                    clickInfoList.forEach { view ->
+                        view.startAutoClick()
                     }
                 }
             }
@@ -77,9 +75,7 @@ class MenuManager(private val context:Context) {
     }
 
 
-
-
-    fun remove(){
+    fun remove() {
         clickInfoList.forEach {
             it.stopAutoClick()
         }

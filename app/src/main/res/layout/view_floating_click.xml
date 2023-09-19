@@ -6,11 +6,18 @@
     android:layout_height="50dp">
 
 
-    <ImageView
+    <View
         android:layout_gravity="center"
-        android:id="@+id/iv_click"
-        android:src="@mipmap/ic_launcher"
-        android:text="click"
+        android:background="@drawable/shape_auto_click"
         android:layout_width="25dp"
         android:layout_height="25dp"/>
+
+    <TextView
+        android:gravity="center"
+        android:textColor="@color/black"
+        android:text="1"
+        android:layout_gravity="center"
+        android:id="@+id/tv_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 </merge>
