@@ -2,7 +2,15 @@ package com.returntolife.accessibilityutils
 
 import android.content.Context
 import android.view.LayoutInflater
+import com.blankj.utilcode.util.LogUtils
 import com.returntolife.accessibilityutils.databinding.ViewMenuBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  *@author: hejiajun02@lizhi.fm
@@ -11,13 +19,16 @@ import com.returntolife.accessibilityutils.databinding.ViewMenuBinding
  */
 class MenuManager(
     private val context: Context,
-    private val clickListener: ((Float, Float, ClickInfo) -> Unit)
+    private val clickListener: (ArrayList<GestureInfo>) -> Unit
 ) {
 
     private var menuBinding: ViewMenuBinding
 
-    private val clickInfoList = ArrayList<FloatingClickView>()
+    private val floatingClickViewList = ArrayList<FloatingClickView>()
 
+    private val gestureInfoList = ArrayList<GestureInfo>()
+
+    private var scope: CoroutineScope? = null
 
     @Volatile
     private var isPlaying = false
@@ -37,22 +48,25 @@ class MenuManager(
     private fun initListener() {
         menuBinding.let {
             it.ivAdd.setOnClickListener {
+                //Set the id based on the size of the list
                 val clickInfo =
-                    ClickInfo(clickInfoList.size + 1, 1000)
+                    ClickInfo(floatingClickViewList.size + 1)
 
-                FloatingClickView(context, clickInfo, clickListener) {
-                    stopAll()
+                FloatingClickView(context, clickInfo) {
+                    stopAutoClick()
                 }.apply {
-                    clickInfoList.add(this)
+                    floatingClickViewList.add(this)
                     this.show()
                 }
             }
 
             it.ivRemove.setOnClickListener {
-                if (clickInfoList.size > 0) {
-                    val view = clickInfoList[clickInfoList.size - 1];
+                stopAutoClick()
+
+                if (floatingClickViewList.size > 0) {
+                    val view = floatingClickViewList[floatingClickViewList.size - 1];
                     view.remove()
-                    clickInfoList.remove(view)
+                    floatingClickViewList.remove(view)
                 }
             }
 
@@ -62,41 +76,80 @@ class MenuManager(
 
             it.ivPlay.setOnClickListener {
                 if (isPlaying) {
-                    stopAll()
+                    stopAutoClick()
                 } else {
-                    startAll()
+                    startAutoClick()
                 }
             }
         }
     }
 
 
-    private fun stopAll() {
+    private fun stopAutoClick() {
         if (isPlaying) {
             isPlaying = false
             menuBinding.ivPlay.setImageResource(R.mipmap.ic_play)
-            clickInfoList.forEach { view ->
-                view.stopAutoClick()
+            scope?.cancel()
+            floatingClickViewList.forEach {
+                it.reset()
             }
         }
     }
 
-    private fun startAll() {
+    private fun startAutoClick() {
+        if (isPlaying) {
+            return
+        }
         isPlaying = true
         menuBinding.ivPlay.setImageResource(R.mipmap.ic_pause)
+        scope?.cancel()
 
-        clickInfoList.forEach { view ->
-            view.startAutoClick()
+        scope = MainScope()
+
+        scope!!.launch(Dispatchers.IO) {
+            loopCheck()
         }
+
+
+    }
+
+    private suspend fun loopCheck() {
+        //每隔16.6毫秒检测一次,即最多1秒点击60次
+
+        gestureInfoList.clear()
+        floatingClickViewList.forEach { view ->
+
+            if (view.checkCanClick()) {
+                val posArray = view.getViewPos()
+                gestureInfoList.add(
+                    GestureInfo(
+                        if (posArray[0] > 0) (posArray[0] - 1).toFloat() else 0f,
+                        if (posArray[1] > 0) (posArray[1] - 1).toFloat() else 0f,
+                        view.clickInfo
+                    )
+                )
+            }
+        }
+
+        if (gestureInfoList.size > 0) {
+            val clickList = ArrayList(gestureInfoList)
+            withContext(Dispatchers.Main) {
+                clickListener.invoke(clickList)
+            }
+        }
+
+        delay(17)
+
+        loopCheck()
     }
 
 
     fun removeAll() {
-        stopAll()
-        clickInfoList.forEach { view ->
+        stopAutoClick()
+        floatingClickViewList.forEach { view ->
             view.remove()
         }
-        clickInfoList.clear()
+        floatingClickViewList.clear()
         menuBinding.root.remove()
 
     }

@@ -14,7 +14,6 @@ import androidx.annotation.RequiresApi
 import com.blankj.utilcode.util.LogUtils
 
 
-
 /**
  *@author: hejiajun02@lizhi.fm
  *@date: 9/18/23
@@ -41,18 +40,18 @@ class AutoClickService : AccessibilityService() {
     private var mPointX = -1f
     private var mPointY = -1f
 
+    /**是否执行完成*/
+    private var _isCompleted: Boolean = true
 
-    private lateinit var menuManager:MenuManager
+    private lateinit var menuManager: MenuManager
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         LogUtils.d("onServiceConnected")
 
         broadcastReceiver.register()
-        menuManager = MenuManager(this) { x, y, clickInfo ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                autoClickView(x, y, clickInfo)
-            }
+        menuManager = MenuManager(this) {
+            autoClickView(it)
         }
     }
 
@@ -73,24 +72,41 @@ class AutoClickService : AccessibilityService() {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.N)
-    private fun autoClickView(x: Float, y: Float, clickInfo: ClickInfo) {
+    private fun autoClickView(list: ArrayList<GestureInfo>) {
+        if (_isCompleted.not()) {
+            //限制一下，不然会触发点击取消，导致每次都无法成功点击
+            LogUtils.w("上一个手势未完成 ")
+            return
+        }
+        _isCompleted = false
+
+        val gestureDescriptionBuild = GestureDescription.Builder()
+
         val path = Path()
-        path.moveTo(x-1, y-1)
-        val gestureDescription = GestureDescription.Builder()
-            .addStroke(GestureDescription.StrokeDescription(path, 0L, 300L))
-            .build()
+        list.forEach {
+            path.moveTo(it.posX, it.posY)
+            gestureDescriptionBuild.addStroke(
+                GestureDescription.StrokeDescription(
+                    path,
+                    0L,
+                    it.clickInfo.pressTime
+                )
+            )
+        }
+
         dispatchGesture(
-            gestureDescription,
+            gestureDescriptionBuild.build(),
             object : GestureResultCallback() {
                 override fun onCompleted(gestureDescription: GestureDescription?) {
                     super.onCompleted(gestureDescription)
-                    LogUtils.d("自动点击完成 x=${x} y=${y} clickInfo=${clickInfo.id}")
+//                    LogUtils.d("自动点击完成 ")
+                    _isCompleted = true
                 }
 
                 override fun onCancelled(gestureDescription: GestureDescription?) {
                     super.onCancelled(gestureDescription)
-                    LogUtils.d("自动点击取消 x=${x} y=${y} clickInfo=${clickInfo.id}")
+                    LogUtils.d("自动点击取消 ")
+                    _isCompleted = true
                 }
             },
             null

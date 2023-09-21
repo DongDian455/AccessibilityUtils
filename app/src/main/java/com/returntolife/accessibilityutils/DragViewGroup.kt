@@ -27,8 +27,8 @@ open class DragViewGroup @JvmOverloads constructor(
     private var mParams: WindowManager.LayoutParams? = null
 
     //按下坐标
-    private var mTouchStartX = -1f
-    private var mTouchStartY = -1f
+     private var mTouchStartX = -1f
+     private var mTouchStartY = -1f
 
     private var downX = -1f
     private var downY = -1f
@@ -81,6 +81,9 @@ open class DragViewGroup @JvmOverloads constructor(
         return super.onTouchEvent(event)
     }
 
+
+
+
     fun getViewPos(): IntArray {
         val location = IntArray(2)
         getLocationOnScreen(location)
@@ -93,11 +96,8 @@ open class DragViewGroup @JvmOverloads constructor(
         mParams?.apply {
             gravity = Gravity.CENTER
             //总是出现在应用程序窗口之上
-            type = if (Build.VERSION.SDK_INT >= 26) {
+            type =
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            } else {
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
-            }
             //设置图片格式，效果为背景透明
             format = PixelFormat.RGBA_8888
 

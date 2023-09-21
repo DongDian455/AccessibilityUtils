@@ -63,6 +63,26 @@ class MainActivity : AppCompatActivity() {
         binding.btnTest2.setOnClickListener {
             binding.btnTest2.text = (binding.btnTest2.text.toString().toInt()+1).toString()
         }
+
+        binding.btnTest3.setOnClickListener {
+            binding.btnTest3.text = (binding.btnTest3.text.toString().toInt()+1).toString()
+        }
+
+        binding.btnTest4.setOnClickListener {
+            binding.btnTest4.text = (binding.btnTest4.text.toString().toInt()+1).toString()
+        }
+
+        binding.btnTest5.setOnClickListener {
+            binding.btnTest5.text = (binding.btnTest5.text.toString().toInt()+1).toString()
+        }
+
+        binding.btnReset.setOnClickListener {
+            binding.btnTest2.text =  "0"
+            binding.btnTest1.text =  "0"
+            binding.btnTest4.text =  "0"
+            binding.btnTest3.text =  "0"
+            binding.btnTest5.text =  "0"
+        }
     }
 
     override fun onResume() {
