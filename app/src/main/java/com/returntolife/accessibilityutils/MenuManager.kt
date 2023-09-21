@@ -88,7 +88,7 @@ class MenuManager(
     private fun stopAutoClick() {
         if (isPlaying) {
             isPlaying = false
-            menuBinding.ivPlay.setImageResource(R.mipmap.ic_play)
+            menuBinding.ivPlay.setImageResource(R.mipmap.ic_auto_click_play)
             scope?.cancel()
             floatingClickViewList.forEach {
                 it.reset()
@@ -101,7 +101,7 @@ class MenuManager(
             return
         }
         isPlaying = true
-        menuBinding.ivPlay.setImageResource(R.mipmap.ic_pause)
+        menuBinding.ivPlay.setImageResource(R.mipmap.ic_auto_click_pause)
         scope?.cancel()
 
         scope = MainScope()
