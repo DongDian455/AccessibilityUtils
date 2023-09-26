@@ -1,15 +1,17 @@
-package com.returntolife.accessibilityutils
+package com.returntolife.accessibilityutils.widgets
 
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
+import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.WindowManager
 import com.blankj.utilcode.util.LogUtils
+import com.returntolife.accessibilityutils.ClickInfo
+import com.returntolife.accessibilityutils.R
 import com.returntolife.accessibilityutils.databinding.DialogMotifyClickinfoBinding
 import com.returntolife.accessibilityutils.databinding.ViewFloatingClickBinding
 
@@ -19,19 +21,25 @@ import com.returntolife.accessibilityutils.databinding.ViewFloatingClickBinding
  *@date: 9/18/23
  *des:
  */
-@SuppressLint("ViewConstructor")
-class FloatingClickView(
-    context: Context,
-    val clickInfo: ClickInfo,
-    private val whenShowConfigDialog: () -> Unit,
-) :
-    DragViewGroup(context) {
 
+class FloatingClickView(
+    context: Context, attrs: AttributeSet? = null
+) :
+    DragViewGroup(context, attrs) {
+
+     var clickInfo: ClickInfo? = null
+         set(value) {
+             field = value
+             updateClickInfo()
+         }
+
+    var whenShowConfigDialog: (() -> Unit)?=null
+
+    var binding:ViewFloatingClickBinding
 
     init {
-        val binding = ViewFloatingClickBinding.inflate(LayoutInflater.from(context), this)
+        binding = ViewFloatingClickBinding.inflate(LayoutInflater.from(context), this)
         binding.root.setBackgroundResource(R.drawable.shape_bg_click)
-        binding.tvName.text = clickInfo.id.toString()
 
         initListener()
     }
@@ -40,24 +48,30 @@ class FloatingClickView(
     private var clickCount = 0
     private var firstDelay = true
 
+    private fun updateClickInfo() {
+        binding.tvName.text = clickInfo?.id.toString()
+    }
+
 
     fun checkCanClick(): Boolean {
+        clickInfo?:return false
+
         //首次检测先赋当前时间
         if (timeTemp == 0L) {
             timeTemp = System.currentTimeMillis()
         }
 
-        if (clickInfo.clickCount != ClickInfo.REVERT && clickCount > clickInfo.clickCount) {
+        if (clickInfo!!.clickCount != ClickInfo.REVERT && clickCount > clickInfo!!.clickCount) {
             //超过点击次数
             return false
         }
 
 
 
-        if (clickInfo.firstDelayTime > 0 && firstDelay) {
+        if (clickInfo!!.firstDelayTime > 0 && firstDelay) {
             //首次延迟检测
 
-            return if (System.currentTimeMillis() - timeTemp < clickInfo.firstDelayTime) {
+            return if (System.currentTimeMillis() - timeTemp < clickInfo!!.firstDelayTime) {
                 false
             } else {
                 firstDelay = false
@@ -66,7 +80,7 @@ class FloatingClickView(
             }
         }
 
-        if (System.currentTimeMillis() - timeTemp > clickInfo.interval) {
+        if (System.currentTimeMillis() - timeTemp > clickInfo!!.interval) {
             timeTemp = System.currentTimeMillis()
             clickCount++
             return true
@@ -95,13 +109,14 @@ class FloatingClickView(
 
 
     private fun showDialog() {
-        whenShowConfigDialog.invoke()
+        clickInfo?:return
+        whenShowConfigDialog?.invoke()
 
         val dialogBinding =
             DialogMotifyClickinfoBinding.inflate(LayoutInflater.from(context.applicationContext))
-        dialogBinding.etInterval.setText(clickInfo.interval.toString())
-        dialogBinding.etCount.setText(clickInfo.clickCount.toString())
-        dialogBinding.etDelayTime.setText(clickInfo.firstDelayTime.toString())
+        dialogBinding.etInterval.setText(clickInfo!!.interval.toString())
+        dialogBinding.etCount.setText(clickInfo!!.clickCount.toString())
+        dialogBinding.etDelayTime.setText(clickInfo!!.firstDelayTime.toString())
 
 //        var text = "按下持续时间(最少50)"
 //        var start = text.indexOf('(')
@@ -129,20 +144,20 @@ class FloatingClickView(
 
 
         dialogBinding.btnOk.setOnClickListener {
-            clickInfo.interval = dialogBinding.etInterval.text.toString().toLong()
-            clickInfo.clickCount = dialogBinding.etCount.text.toString().toInt()
-            clickInfo.firstDelayTime = dialogBinding.etDelayTime.text.toString().toLong()
+            clickInfo!!.interval = dialogBinding.etInterval.text.toString().toLong()
+            clickInfo!!.clickCount = dialogBinding.etCount.text.toString().toInt()
+            clickInfo!!.firstDelayTime = dialogBinding.etDelayTime.text.toString().toLong()
 
-            if (clickInfo.interval < 0) {
-                clickInfo.interval = 0
+            if (clickInfo!!.interval < 0) {
+                clickInfo!!.interval = 0
             }
 
-            if (clickInfo.clickCount < 0) {
-                clickInfo.clickCount = 0
+            if (clickInfo!!.clickCount < 0) {
+                clickInfo!!.clickCount = 0
             }
 
-            if (clickInfo.firstDelayTime < 0) {
-                clickInfo.firstDelayTime = 0
+            if (clickInfo!!.firstDelayTime < 0) {
+                clickInfo!!.firstDelayTime = 0
             }
             LogUtils.d("修改点击配置  clickInfo=${clickInfo}")
             dialog.dismiss()

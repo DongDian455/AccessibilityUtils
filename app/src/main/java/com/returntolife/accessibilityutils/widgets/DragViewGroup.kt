@@ -1,22 +1,21 @@
-package com.returntolife.accessibilityutils
+package com.returntolife.accessibilityutils.widgets
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.graphics.PixelFormat
-import android.os.Build
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.FrameLayout
-import com.blankj.utilcode.util.LogUtils
+import com.returntolife.accessibilityutils.tryAddView
+import com.returntolife.accessibilityutils.tryRemoveView
+import com.returntolife.accessibilityutils.tryUpdateView
 import kotlin.math.abs
 
 /**
  *@author: hejiajun02@lizhi.fm
  *@date: 9/18/23
- *des:
+ *des: 整个跟着手势移动的viewGroup
  */
 open class DragViewGroup @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null

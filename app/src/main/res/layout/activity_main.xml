@@ -72,4 +72,22 @@
         android:text="reset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
+
+
+    <com.returntolife.accessibilityutils.widgets.SliderView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:text="1110"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Button
+
+            android:text="2222"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </com.returntolife.accessibilityutils.widgets.SliderView>
 </LinearLayout>

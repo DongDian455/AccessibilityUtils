@@ -2,8 +2,8 @@ package com.returntolife.accessibilityutils
 
 import android.content.Context
 import android.view.LayoutInflater
-import com.blankj.utilcode.util.LogUtils
 import com.returntolife.accessibilityutils.databinding.ViewMenuBinding
+import com.returntolife.accessibilityutils.widgets.FloatingClickView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -48,13 +48,17 @@ class MenuManager(
     private fun initListener() {
         menuBinding.let {
             it.ivAdd.setOnClickListener {
+                stopAutoClick()
+
                 //Set the id based on the size of the list
                 val clickInfo =
                     ClickInfo(floatingClickViewList.size + 1)
 
-                FloatingClickView(context, clickInfo) {
-                    stopAutoClick()
-                }.apply {
+                FloatingClickView(context).apply {
+                    this.clickInfo = clickInfo
+                    this.whenShowConfigDialog = {
+                        stopAutoClick()
+                    }
                     floatingClickViewList.add(this)
                     this.show()
                 }
@@ -121,13 +125,17 @@ class MenuManager(
 
             if (view.checkCanClick()) {
                 val posArray = view.getViewPos()
-                gestureInfoList.add(
-                    GestureInfo(
-                        if (posArray[0] > 0) (posArray[0] - 1).toFloat() else 0f,
-                        if (posArray[1] > 0) (posArray[1] - 1).toFloat() else 0f,
-                        view.clickInfo
+
+                view.clickInfo?.let {
+                    gestureInfoList.add(
+                        GestureInfo(
+                            if (posArray[0] > 0) (posArray[0] - 1).toFloat() else 0f,
+                            if (posArray[1] > 0) (posArray[1] - 1).toFloat() else 0f,
+                            it
+                        )
                     )
-                )
+                }
+
             }
         }
 
@@ -143,7 +151,6 @@ class MenuManager(
         loopCheck()
     }
 
-
     fun removeAll() {
         stopAutoClick()
         floatingClickViewList.forEach { view ->
@@ -153,6 +160,7 @@ class MenuManager(
         menuBinding.root.remove()
 
     }
+
 
 
 }
