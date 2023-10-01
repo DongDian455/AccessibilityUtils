@@ -1,16 +1,21 @@
 package com.returntolife.accessibilityutils
 
 import android.content.Context
+import android.os.Build
 import android.view.LayoutInflater
+import android.view.WindowManager
+import com.blankj.utilcode.util.ScreenUtils
+import com.blankj.utilcode.util.SizeUtils
+import com.returntolife.accessibilityutils.databinding.DialogSelectedTypeBinding
 import com.returntolife.accessibilityutils.databinding.ViewMenuBinding
 import com.returntolife.accessibilityutils.widgets.FloatingClickView
+import com.returntolife.accessibilityutils.widgets.SliderView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  *@author: hejiajun02@lizhi.fm
@@ -19,58 +24,137 @@ import kotlinx.coroutines.withContext
  */
 class MenuManager(
     private val context: Context,
-    private val clickListener: (ArrayList<GestureInfo>) -> Unit
+    private val executionList: (ArrayList<AutoGestureInfo>) -> Unit
 ) {
 
     private var menuBinding: ViewMenuBinding
 
-    private val floatingClickViewList = ArrayList<FloatingClickView>()
-
-    private val gestureInfoList = ArrayList<GestureInfo>()
+    private val gestureInfoList = ArrayList<AutoGestureInfo>()
 
     private var scope: CoroutineScope? = null
 
     @Volatile
     private var isPlaying = false
 
+
     init {
         menuBinding = ViewMenuBinding.inflate(LayoutInflater.from(context))
+
+
     }
 
     fun showMenuManager() {
         menuBinding = ViewMenuBinding.inflate(LayoutInflater.from(context))
-        menuBinding.root.show()
+        menuBinding.root.show(0, 0)
 
         initListener()
+    }
+
+
+
+    /**
+     * cn: 根据类型移除对应的控件
+     * [type] : 除了这个类型其他都移除
+     */
+    private fun removeExcludeType(type: GestureType) {
+        val removeList = ArrayList<AutoGestureInfo>()
+
+        gestureInfoList.forEach {
+            if(it.timerManager.gestureTimerInfo.type!=type){
+                removeList.add(it)
+            }
+        }
+
+        removeList.forEach {
+            it.gestureWidgetListener.removeWidget()
+        }
+
+        gestureInfoList.removeAll(removeList.toSet())
+    }
+
+    /**
+     * cn : 选择脚本类型，点击和滑动暂不能同时进行
+     * en : Select the script type, click and swipe can not be done at the same time
+     */
+    private fun showDialog() {
+        val dialogBinding =
+            DialogSelectedTypeBinding.inflate(LayoutInflater.from(context.applicationContext))
+
+        val dialog = android.app.AlertDialog.Builder(context.applicationContext)
+            .setView(dialogBinding.root)
+            .create()
+
+
+        dialogBinding.btnClick.setOnClickListener {
+            removeExcludeType(GestureType.Click)
+
+            val timerManager = TimerManager(
+                GestureTimerInfo(
+                    gestureInfoList.size + 1,
+                    GestureType.Click
+                )
+            )
+            FloatingClickView(timerManager
+                , context
+            ).apply {
+                this.whenShowConfigDialog = {
+                    stopTimerTask()
+                }
+
+                gestureInfoList.add(AutoGestureInfo(this,timerManager))
+                this.showWidget()
+            }
+
+            dialog.dismiss()
+        }
+
+        dialogBinding.btnSlider.setOnClickListener {
+            removeExcludeType(GestureType.Slider)
+
+            val timerManager = TimerManager(GestureTimerInfo(1,GestureType.Slider, pressTime = 300))
+            SliderView(context,timerManager).apply {
+                this.whenShowConfigDialog = {
+                    stopTimerTask()
+                }
+                gestureInfoList.add(AutoGestureInfo(this,timerManager))
+                showWidget()
+            }
+
+            dialog.dismiss()
+        }
+
+
+        val flag: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY
+        }
+        dialog.window?.setType(flag)
+        dialog.show()
+
+
     }
 
 
     private fun initListener() {
         menuBinding.let {
             it.ivAdd.setOnClickListener {
-                stopAutoClick()
+                stopTimerTask()
 
-                //Set the id based on the size of the list
-                val clickInfo =
-                    ClickInfo(floatingClickViewList.size + 1)
+                showDialog()
 
-                FloatingClickView(context).apply {
-                    this.clickInfo = clickInfo
-                    this.whenShowConfigDialog = {
-                        stopAutoClick()
-                    }
-                    floatingClickViewList.add(this)
-                    this.show()
-                }
             }
 
             it.ivRemove.setOnClickListener {
-                stopAutoClick()
 
-                if (floatingClickViewList.size > 0) {
-                    val view = floatingClickViewList[floatingClickViewList.size - 1];
-                    view.remove()
-                    floatingClickViewList.remove(view)
+                stopTimerTask()
+
+                if(gestureInfoList.isNotEmpty()){
+                    gestureInfoList[gestureInfoList.lastIndex]
+                        .apply {
+                            this.gestureWidgetListener.removeWidget()
+                            gestureInfoList.remove(this)
+                        }
                 }
             }
 
@@ -80,27 +164,28 @@ class MenuManager(
 
             it.ivPlay.setOnClickListener {
                 if (isPlaying) {
-                    stopAutoClick()
+                    stopTimerTask()
                 } else {
-                    startAutoClick()
+                    startTimerTask()
                 }
             }
         }
     }
 
 
-    private fun stopAutoClick() {
+    private fun stopTimerTask() {
         if (isPlaying) {
             isPlaying = false
             menuBinding.ivPlay.setImageResource(R.mipmap.ic_auto_click_play)
             scope?.cancel()
-            floatingClickViewList.forEach {
-                it.reset()
+
+            gestureInfoList.forEach {
+                it.timerManager.reset()
             }
         }
     }
 
-    private fun startAutoClick() {
+    private fun startTimerTask() {
         if (isPlaying) {
             return
         }
@@ -108,42 +193,26 @@ class MenuManager(
         menuBinding.ivPlay.setImageResource(R.mipmap.ic_auto_click_pause)
         scope?.cancel()
 
-        scope = MainScope()
-
-        scope!!.launch(Dispatchers.IO) {
-            loopCheck()
+        scope = MainScope().apply {
+            launch(Dispatchers.IO) {
+                loopCheck()
+            }
         }
-
-
     }
+
 
     private suspend fun loopCheck() {
         //每隔16.6毫秒检测一次,即最多1秒点击60次
 
-        gestureInfoList.clear()
-        floatingClickViewList.forEach { view ->
-
-            if (view.checkCanClick()) {
-                val posArray = view.getViewPos()
-
-                view.clickInfo?.let {
-                    gestureInfoList.add(
-                        GestureInfo(
-                            if (posArray[0] > 0) (posArray[0] - 1).toFloat() else 0f,
-                            if (posArray[1] > 0) (posArray[1] - 1).toFloat() else 0f,
-                            it
-                        )
-                    )
-                }
-
+         val autoList = ArrayList<AutoGestureInfo>()
+        gestureInfoList.forEach {
+            if(it.timerManager.checkCanDispatchGesture()){
+                autoList.add(it)
             }
         }
 
-        if (gestureInfoList.size > 0) {
-            val clickList = ArrayList(gestureInfoList)
-            withContext(Dispatchers.Main) {
-                clickListener.invoke(clickList)
-            }
+        if(autoList.isNotEmpty()){
+            executionList.invoke(autoList)
         }
 
         delay(17)
@@ -152,15 +221,15 @@ class MenuManager(
     }
 
     fun removeAll() {
-        stopAutoClick()
-        floatingClickViewList.forEach { view ->
-            view.remove()
+        stopTimerTask()
+
+        gestureInfoList.forEach {
+            it.gestureWidgetListener.removeWidget()
         }
-        floatingClickViewList.clear()
+        gestureInfoList.clear()
         menuBinding.root.remove()
 
     }
-
 
 
 }

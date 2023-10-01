@@ -22,7 +22,7 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:text="点击间隔"
+            android:text="执行间隔"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
@@ -78,13 +78,32 @@
 
         <TextView
             android:id="@+id/tvCLickCountTip"
-            android:text="点击次数(0为无限)"
+            android:text="执行次数(0为无限)"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
         <EditText
             android:inputType="number"
             android:id="@+id/et_count"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvTimerTip"
+            android:text="手势持续事件"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <EditText
+            android:inputType="number"
+            android:hint="点击最小30ms,滑动最小300ms"
+            android:id="@+id/et_press_timer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </LinearLayout>

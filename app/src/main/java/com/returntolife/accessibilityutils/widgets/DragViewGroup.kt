@@ -2,6 +2,7 @@ package com.returntolife.accessibilityutils.widgets
 
 import android.content.Context
 import android.graphics.PixelFormat
+import android.os.Build
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.MotionEvent
@@ -22,8 +23,8 @@ open class DragViewGroup @JvmOverloads constructor(
 ) : FrameLayout(context, attrs) {
 
 
-    private val mWindowManager: WindowManager
-    private var mParams: WindowManager.LayoutParams? = null
+    protected val mWindowManager: WindowManager
+    protected var mParams: WindowManager.LayoutParams? = null
 
     //按下坐标
      private var mTouchStartX = -1f
@@ -32,6 +33,8 @@ open class DragViewGroup @JvmOverloads constructor(
     private var downX = -1f
     private var downY = -1f
     protected var isDragging = false
+
+    var onPositionChange:(()->Unit)? = null
 
     init {
         mWindowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -55,7 +58,9 @@ open class DragViewGroup @JvmOverloads constructor(
                         it.x += (event.rawX - mTouchStartX).toInt()
                         it.y += (event.rawY - mTouchStartY).toInt()
 
-                        mWindowManager.tryUpdateView(this, it)
+                        if(mWindowManager.tryUpdateView(this, it)){
+                            onPositionChange?.invoke()
+                        }
 
                         if (abs(event.rawX - downX) > 50 || abs(event.rawY - downY) > 50) {
                             isDragging = true
@@ -90,13 +95,18 @@ open class DragViewGroup @JvmOverloads constructor(
     }
 
 
-    fun show() {
+    fun show(left:Int =0,top:Int=0,gravity: Int = Gravity.CENTER) {
         mParams = WindowManager.LayoutParams()
         mParams?.apply {
-            gravity = Gravity.CENTER
+            this.gravity = gravity
             //总是出现在应用程序窗口之上
-            type =
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                type =
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            }else{
+                type =
+                    WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY
+            }
             //设置图片格式，效果为背景透明
             format = PixelFormat.RGBA_8888
 
@@ -105,6 +115,8 @@ open class DragViewGroup @JvmOverloads constructor(
                         WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR or
                         WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
 
+            x = left
+            y = top
             width = LayoutParams.WRAP_CONTENT
             height = LayoutParams.WRAP_CONTENT
             if (isAttachedToWindow) {
@@ -114,7 +126,7 @@ open class DragViewGroup @JvmOverloads constructor(
         }
     }
 
-    open fun remove() {
+     fun remove() {
         mWindowManager.tryRemoveView(this)
     }
 

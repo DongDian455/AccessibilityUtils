@@ -2,20 +2,21 @@ package com.returntolife.accessibilityutils
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.PixelFormat
-import android.os.Build
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.provider.Settings
-import android.view.Gravity
+import android.text.Html
 import android.view.LayoutInflater
-import android.view.WindowManager
-import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.blankj.utilcode.util.LogUtils
-import com.blankj.utilcode.util.LogUtils.Config
 import com.blankj.utilcode.util.ServiceUtils
 import com.returntolife.accessibilityutils.databinding.ActivityMainBinding
+import java.io.IOException
+import java.util.Timer
+import java.util.TimerTask
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,13 +25,17 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityMainBinding
 
-    private var mLayout: FrameLayout? = null
+    private val timer = Timer()
+
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#79AC78")))
+        supportActionBar?.title = Html.fromHtml("<font color='#ffffff'>自动化手势工具</font>", 0)
+
         binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
         setContentView(binding.root)
 
@@ -53,36 +58,62 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnStart.setOnClickListener {
-            showFloatingWindow(1000)
+            showMenuWindow()
         }
 
-        binding.btnTest1.setOnClickListener {
-            binding.btnTest1.text = (binding.btnTest1.text.toString().toInt()+1).toString()
-        }
 
-        binding.btnTest2.setOnClickListener {
-            binding.btnTest2.text = (binding.btnTest2.text.toString().toInt()+1).toString()
-        }
+        startCheckService()
 
-        binding.btnTest3.setOnClickListener {
-            binding.btnTest3.text = (binding.btnTest3.text.toString().toInt()+1).toString()
-        }
+//        binding.btnTest1.setOnClickListener {
+//            binding.btnTest1.text = (binding.btnTest1.text.toString().toInt()+1).toString()
+//        }
+//
 
-        binding.btnTest4.setOnClickListener {
-            binding.btnTest4.text = (binding.btnTest4.text.toString().toInt()+1).toString()
-        }
+//        binding.btnTest2.setOnClickListener {
+//            binding.btnTest2.text = (binding.btnTest2.text.toString().toInt()+1).toString()
+//        }
+//
+//        binding.btnTest3.setOnClickListener {
+//            binding.btnTest3.text = (binding.btnTest3.text.toString().toInt()+1).toString()
+//        }
+//
+//        binding.btnTest4.setOnClickListener {
+//            binding.btnTest4.text = (binding.btnTest4.text.toString().toInt()+1).toString()
+//        }
+//
+//        binding.btnTest5.setOnClickListener {
+//            binding.btnTest5.text = (binding.btnTest5.text.toString().toInt()+1).toString()
+//        }
+//
+//        binding.btnReset.setOnClickListener {
+//            binding.btnTest2.text =  "0"
+//            binding.btnTest1.text =  "0"
+//            binding.btnTest4.text =  "0"
+//            binding.btnTest3.text =  "0"
+//            binding.btnTest5.text =  "0"
+//        }
+    }
 
-        binding.btnTest5.setOnClickListener {
-            binding.btnTest5.text = (binding.btnTest5.text.toString().toInt()+1).toString()
-        }
+    /**
+     * cn : 开始定时检测无障碍服务是否已经启动，启动后就停止检测
+     * en : Start to regularly detect whether the accessibility service has been started, and stop the detection after the start
+     */
+    private fun startCheckService() {
+        val task: TimerTask = object : TimerTask() {
+            override fun run() {
+                binding.root.post {
+                    val isOpenService = ServiceUtils.isServiceRunning(AutoClickService::class.java)
 
-        binding.btnReset.setOnClickListener {
-            binding.btnTest2.text =  "0"
-            binding.btnTest1.text =  "0"
-            binding.btnTest4.text =  "0"
-            binding.btnTest3.text =  "0"
-            binding.btnTest5.text =  "0"
+                    binding.btnStart.isEnabled =
+                        isOpenService && Settings.canDrawOverlays(this@MainActivity)
+                    if (isOpenService) {
+                        timer.cancel()
+                    }
+                }
+
+            }
         }
+        timer.schedule(task, 1000, 1000)
     }
 
     override fun onResume() {
@@ -94,12 +125,11 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun showFloatingWindow(interval: Long) {
+    private fun showMenuWindow() {
         sendBroadcast(Intent().apply {
-            action = BroadcastConstants.BROADCAST_ACTION_AUTO_CLICK
-            putExtra(BroadcastConstants.KEY_ACTION, AutoClickService.ACTION_SHOW)
-            putExtra(BroadcastConstants.KEY_INTERVAL, interval)
+            action = AutoClickService.ACTION_SHOW
         })
     }
+
 
 }

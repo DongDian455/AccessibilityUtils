@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="16dp"
     tools:context=".MainActivity">
 
 <!--    <TextView-->
@@ -20,74 +22,59 @@
     <Button
         android:id="@+id/btnOpenAcc"
         android:text="开启辅助服务"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_width="match_parent"
+        android:layout_height="64dp"/>
 
     <Button
+        android:layout_marginTop="12dp"
         android:id="@+id/btnOpenDialog"
         android:text="开启悬浮窗权限"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_width="match_parent"
+        android:layout_height="64dp"/>
 
     <Button
+        android:layout_marginTop="12dp"
         android:id="@+id/btnStart"
         android:text="启动"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-
-    <Button
-        android:id="@+id/btnTest1"
-        android:text="0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-
-    <Button
-        android:id="@+id/btnTest2"
-        android:text="0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/btnTest3"
-        android:text="0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/btnTest4"
-        android:text="0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/btnTest5"
-        android:text="0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/btnReset"
-        android:text="reset"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-
-    <com.returntolife.accessibilityutils.widgets.SliderView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="64dp"/>
 
-        <Button
-            android:text="1110"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
 
-        <Button
+<!--    <Button-->
+<!--        android:id="@+id/btnTest1"-->
+<!--        android:text="0"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"/>-->
 
-            android:text="2222"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
 
-    </com.returntolife.accessibilityutils.widgets.SliderView>
+<!--    <Button-->
+<!--        android:id="@+id/btnTest2"-->
+<!--        android:text="0"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"/>-->
+
+<!--    <Button-->
+<!--        android:id="@+id/btnTest3"-->
+<!--        android:text="0"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"/>-->
+
+<!--    <Button-->
+<!--        android:id="@+id/btnTest4"-->
+<!--        android:text="0"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"/>-->
+
+<!--    <Button-->
+<!--        android:id="@+id/btnTest5"-->
+<!--        android:text="0"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"/>-->
+
+<!--    <Button-->
+<!--        android:id="@+id/btnReset"-->
+<!--        android:text="reset"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"/>-->
+
 </LinearLayout>

@@ -1,8 +1,11 @@
 package com.returntolife.accessibilityutils.widgets
 
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Path
+import android.os.Build
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -10,8 +13,9 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.WindowManager
 import com.blankj.utilcode.util.LogUtils
-import com.returntolife.accessibilityutils.ClickInfo
+import com.returntolife.accessibilityutils.GestureWidgetListener
 import com.returntolife.accessibilityutils.R
+import com.returntolife.accessibilityutils.TimerManager
 import com.returntolife.accessibilityutils.databinding.DialogMotifyClickinfoBinding
 import com.returntolife.accessibilityutils.databinding.ViewFloatingClickBinding
 
@@ -22,84 +26,51 @@ import com.returntolife.accessibilityutils.databinding.ViewFloatingClickBinding
  *des:
  */
 
-class FloatingClickView(
-    context: Context, attrs: AttributeSet? = null
+@SuppressLint("ViewConstructor")
+class FloatingClickView(private val timerInfo: TimerManager,
+                        context: Context, attrs: AttributeSet? = null
 ) :
-    DragViewGroup(context, attrs) {
+    DragViewGroup(context, attrs),GestureWidgetListener {
 
-     var clickInfo: ClickInfo? = null
-         set(value) {
-             field = value
-             updateClickInfo()
-         }
 
     var whenShowConfigDialog: (() -> Unit)?=null
 
-    var binding:ViewFloatingClickBinding
+    private var binding:ViewFloatingClickBinding
 
     init {
         binding = ViewFloatingClickBinding.inflate(LayoutInflater.from(context), this)
         binding.root.setBackgroundResource(R.drawable.shape_bg_click)
-
+        binding.tvName.text = timerInfo.gestureTimerInfo.id.toString()
         initListener()
     }
 
-    private var timeTemp = 0L
-    private var clickCount = 0
-    private var firstDelay = true
+    override fun removeWidget() {
+        remove()
+    }
 
-    private fun updateClickInfo() {
-        binding.tvName.text = clickInfo?.id.toString()
+    override fun showWidget(left: Int, top: Int) {
+        show(left,top)
     }
 
 
-    fun checkCanClick(): Boolean {
-        clickInfo?:return false
 
-        //首次检测先赋当前时间
-        if (timeTemp == 0L) {
-            timeTemp = System.currentTimeMillis()
+    override fun getPath(): Path {
+        val path = Path()
+
+        getViewPos().let {
+            //cn: 减1是为了避免自己点击自己
+            path.moveTo(it[0].toFloat()-1, it[1].toFloat()-1)
         }
 
-        if (clickInfo!!.clickCount != ClickInfo.REVERT && clickCount > clickInfo!!.clickCount) {
-            //超过点击次数
-            return false
-        }
-
-
-
-        if (clickInfo!!.firstDelayTime > 0 && firstDelay) {
-            //首次延迟检测
-
-            return if (System.currentTimeMillis() - timeTemp < clickInfo!!.firstDelayTime) {
-                false
-            } else {
-                firstDelay = false
-                clickCount++
-                true
-            }
-        }
-
-        if (System.currentTimeMillis() - timeTemp > clickInfo!!.interval) {
-            timeTemp = System.currentTimeMillis()
-            clickCount++
-            return true
-        }
-
-        return false
-    }
-
-    fun reset() {
-        timeTemp = 0
-        clickCount = 0
-        firstDelay = true
+        return path
     }
 
 
     private fun initListener() {
         setOnLongClickListener {
             if (isDragging.not()) {
-                showDialog()
+                whenShowConfigDialog?.invoke()
+                timerInfo.showDialog(context)
                 true
             } else {
                 false
@@ -107,62 +78,5 @@ class FloatingClickView(
         }
     }
 
-
-    private fun showDialog() {
-        clickInfo?:return
-        whenShowConfigDialog?.invoke()
-
-        val dialogBinding =
-            DialogMotifyClickinfoBinding.inflate(LayoutInflater.from(context.applicationContext))
-        dialogBinding.etInterval.setText(clickInfo!!.interval.toString())
-        dialogBinding.etCount.setText(clickInfo!!.clickCount.toString())
-        dialogBinding.etDelayTime.setText(clickInfo!!.firstDelayTime.toString())
-
-//        var text = "按下持续时间(最少50)"
-//        var start = text.indexOf('(')
-//        var end = text.length
-//        var span = ForegroundColorSpan(Color.RED)
-//        var spannableString = SpannableString(text)
-//        spannableString.setSpan(span, start, end, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
-//        dialogBinding.tvPressTimeTip.text = spannableString
-
-        val text = "点击次数(0为无限)"
-        val start = text.indexOf('(')
-        val end = text.length
-        val span = ForegroundColorSpan(Color.RED)
-        val spannableString = SpannableString(text)
-        spannableString.setSpan(span, start, end, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
-        dialogBinding.tvCLickCountTip.text = spannableString
-
-        val dialog = android.app.AlertDialog.Builder(context.applicationContext)
-            .setView(dialogBinding.root)
-            .create()
-
-        val flag: Int = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        dialog.window?.setType(flag)
-        dialog.show()
-
-
-        dialogBinding.btnOk.setOnClickListener {
-            clickInfo!!.interval = dialogBinding.etInterval.text.toString().toLong()
-            clickInfo!!.clickCount = dialogBinding.etCount.text.toString().toInt()
-            clickInfo!!.firstDelayTime = dialogBinding.etDelayTime.text.toString().toLong()
-
-            if (clickInfo!!.interval < 0) {
-                clickInfo!!.interval = 0
-            }
-
-            if (clickInfo!!.clickCount < 0) {
-                clickInfo!!.clickCount = 0
-            }
-
-            if (clickInfo!!.firstDelayTime < 0) {
-                clickInfo!!.firstDelayTime = 0
-            }
-            LogUtils.d("修改点击配置  clickInfo=${clickInfo}")
-            dialog.dismiss()
-        }
-
-    }
 
 }

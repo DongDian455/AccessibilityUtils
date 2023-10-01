@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">AccessibilityUtils</string>
+    <string name="app_name">手势模拟</string>
 
-    <string name="acc_auto_click">自动点击</string>
-    <string name="acc_auto_click_label">自动点击服务</string>
+    <string name="acc_auto_click">手势模拟</string>
+    <string name="acc_auto_click_label">手势模拟服务</string>
 </resources>

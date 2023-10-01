@@ -1,8 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.AccessibilityUtils" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.AccessibilityUtils" parent="Theme.Material3.DayNight">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+        <item name="colorPrimary">#618264</item>
+        <item name="colorPrimaryVariant">#79AC78</item>
+
+
+<!--        <item name="colorOnPrimary">@color/white</item>-->
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">#B0D9B1</item>
+        <item name="colorSecondaryVariant">#D0E7D2</item>
+<!--        <item name="colorOnSecondary">@color/black</item>-->
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" >?attr/colorPrimaryVariant</item>
     </style>
 
     <style name="Theme.AccessibilityUtils" parent="Base.Theme.AccessibilityUtils" />
