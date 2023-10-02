@@ -118,6 +118,10 @@ class MainActivity : AppCompatActivity() {
 
             val key  = dialogBinding.etInterval.text.toString()
 
+            if(key.isEmpty()){
+                return@setOnClickListener
+            }
+
             if(authUtils.checkAuth(key)){
                 ToastUtils.showShort("验证通过")
 

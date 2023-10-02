@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">手势模拟</string>
+    <string name="app_name">手势精灵</string>
 
-    <string name="acc_auto_click">手势模拟</string>
-    <string name="acc_auto_click_label">手势模拟服务</string>
+    <string name="acc_auto_click">手势精灵,自动模拟手势</string>
+    <string name="acc_auto_click_label">手势精灵服务</string>
 </resources>

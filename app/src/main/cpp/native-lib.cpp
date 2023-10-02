@@ -96,20 +96,26 @@ Java_com_returntolife_accessibilityutils_AuthUtils_checkAuthByNative(JNIEnv *env
     std::string info = jstring2string(env,key);
 
 //   LOGD("currentTime=%s",info.data());
+    try{
+        size_t pos = info.find('-');
 
-    size_t pos = info.find('-');
-    std::string temp = info.substr(0, pos);
-    long  time = std::stol(temp);
 
-    long currentTime = getCurrentTime();
+        std::string temp = info.substr(0, pos);
+        long  time = std::stol(temp);
+
+        long currentTime = getCurrentTime();
 
 //    LOGD("currentTime=%ld time=%ld",currentTime,time);
-    auto diff = labs(currentTime-time);
+        auto diff = labs(currentTime-time);
 
-    LOGD("diff=%ld",diff);
+        LOGD("diff=%ld",diff);
 
-    return diff < 60 * 60 * 12;
+        return diff < 60 * 60 * 12;
+    }catch (std::exception &e){
 
+    }
+
+    return false;
 }
 
 

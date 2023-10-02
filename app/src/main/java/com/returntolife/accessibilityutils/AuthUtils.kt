@@ -2,6 +2,7 @@ package com.returntolife.accessibilityutils
 
 import android.util.Base64
 import com.blankj.utilcode.util.SPUtils
+import java.lang.Exception
 import java.security.KeyFactory
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
@@ -12,31 +13,35 @@ class AuthUtils {
         System.loadLibrary("my_auth")
     }
 
-    companion object{
-        private const val KEY="auth_key"
+    companion object {
+        private const val KEY = "auth_key"
 
 
     }
 
-     external fun checkAuthByNative(s:String):Boolean
+    external fun checkAuthByNative(s: String): Boolean
 
-    fun isAuth():Boolean{
+    fun isAuth(): Boolean {
         return SPUtils.getInstance().getBoolean(KEY)
 
     }
 
 
+    fun checkAuth(key: String): Boolean {
+        try {
+            val result: Boolean = checkAuthByNative(key)
+            if (result) {
+                SPUtils.getInstance().put(KEY, true)
+            }
 
-    fun checkAuth(key:String):Boolean{
-        val result: Boolean = checkAuthByNative(key)
+            return result
+        } catch (e: Exception) {
 
-        if(result){
-            SPUtils.getInstance().put(KEY,true)
         }
 
-        return result
-    }
+        return false
 
+    }
 
 
 }
