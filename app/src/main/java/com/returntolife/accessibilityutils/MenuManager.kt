@@ -4,8 +4,6 @@ import android.content.Context
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.WindowManager
-import com.blankj.utilcode.util.ScreenUtils
-import com.blankj.utilcode.util.SizeUtils
 import com.returntolife.accessibilityutils.databinding.DialogSelectedTypeBinding
 import com.returntolife.accessibilityutils.databinding.ViewMenuBinding
 import com.returntolife.accessibilityutils.widgets.FloatingClickView
@@ -159,7 +157,7 @@ class MenuManager(
             }
 
             it.ivClose.setOnClickListener {
-                removeAll()
+                stopAndRemoveAll()
             }
 
             it.ivPlay.setOnClickListener {
@@ -220,7 +218,7 @@ class MenuManager(
         loopCheck()
     }
 
-    fun removeAll() {
+    fun stopAndRemoveAll() {
         stopTimerTask()
 
         gestureInfoList.forEach {

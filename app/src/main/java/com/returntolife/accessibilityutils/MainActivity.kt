@@ -9,11 +9,13 @@ import android.provider.Settings
 import android.text.Html
 import android.view.LayoutInflater
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.ServiceUtils
+import com.blankj.utilcode.util.ToastUtils
 import com.returntolife.accessibilityutils.databinding.ActivityMainBinding
-import java.io.IOException
+import com.returntolife.accessibilityutils.databinding.DialogAuthCheckBinding
 import java.util.Timer
 import java.util.TimerTask
 
@@ -28,7 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private val timer = Timer()
-
+    private val authUtils = AuthUtils()
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -92,6 +94,41 @@ class MainActivity : AppCompatActivity() {
 //            binding.btnTest3.text =  "0"
 //            binding.btnTest5.text =  "0"
 //        }
+
+
+        authCheck()
+    }
+
+    private fun authCheck(){
+
+        if(authUtils.isAuth()){
+            return
+        }
+
+        val dialogBinding =
+            DialogAuthCheckBinding.inflate(LayoutInflater.from(this))
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .setCancelable(false)
+            .show()
+
+
+        dialogBinding.btnOk.setOnClickListener {
+
+            val key  = dialogBinding.etInterval.text.toString()
+
+            if(authUtils.checkAuth(key)){
+                ToastUtils.showShort("验证通过")
+
+                dialog.dismiss()
+            }else{
+                ToastUtils.showShort("验证失败")
+            }
+        }
+
+
+
     }
 
     /**
