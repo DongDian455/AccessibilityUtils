@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.Path
 import android.view.accessibility.AccessibilityEvent
 import com.blankj.utilcode.util.LogUtils
 
@@ -167,11 +166,10 @@ class AutoClickService : AccessibilityService() {
             intent?.apply {
                 when (action) {
                     Intent.ACTION_SCREEN_OFF -> {
-                        menuManager.removeAll()
-                        menuManager.showMenuManager()
+                        menuManager.stopAndRemoveAll()
                     }
                     ACTION_SHOW ->{
-                        menuManager.removeAll()
+                        menuManager.stopAndRemoveAll()
                         menuManager.showMenuManager()
                     }
                 }
